@@ -1,0 +1,28 @@
+FROM oraclelinux:6
+USER root
+RUN groupadd -g 520 oinstall \
+  && groupadd -g 521 dba \
+  && groupadd -g 522 oper \
+  && useradd -m -g oinstall -G oinstall,dba,oper -u 520 oracle \
+  && echo 'oracle:Red_12345' | chpasswd
+
+RUN yum -y install file openssl lsof sudo sysstat tree wget which
+RUN yum -y install oracle-database-preinstall-18c
+RUN mkdir -pv /install
+COPY ./oracle/oracle-database-xe-18c-1.0-1.x86_64.rpm /install
+ENV ORACLE_DOCKER_INSTALL=true \
+    ORACLE_BASE=/opt/oracle \
+    ORACLE_HOME=/opt/oracle/product/18c/dbhomeXE \
+    PATH=/home/oracle/bin:/opt/oracle/product/18c/dbhomeXE/bin:$PATH \
+    NLS_DATE_FORMAT="dd/mm/yyyy:hh24:mi:ss" \
+    ORACLE_SID=XE
+RUN cd /install \
+ && yum -y localinstall oracle-database-*18c*  \
+ && yum clean all \
+ && rm -rf /install/oracle*.rpm
+ EXPOSE 1521
+COPY ./scripts/DM_create_tables_was.sql /install
+COPY ./scripts/DM_inserts_was.sql /install
+COPY ./scripts/oracle_start.sh /install
+COPY ./scripts/bash.src /install
+ENTRYPOINT [ "/bin/bash" , "/install/oracle_start.sh" ]
