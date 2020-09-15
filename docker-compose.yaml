@@ -1,0 +1,51 @@
+version: '3.8'
+
+networks:
+   oracle_net:
+    external:
+      name: oracle_net
+      
+volumes:
+   oravolume9:
+    external:
+      name: oravolume9    
+      
+services:
+    oracle_xe:
+        image: redbdocker
+        build:
+            context: '.\oracle docker'
+        hostname: oraclehost
+        networks:
+            oracle_net:
+                aliases:
+                    - oraclexe
+        ports:
+            - "1521:1521"
+        volumes:
+            - type: volume
+              source: oravolume9
+              target: /opt/oracle
+              
+        
+    ruleeditor:
+        depends_on:
+            - oracle_xe
+        image: reimage15
+        hostname: rehost
+        build:
+            context: '.\REDocker'
+        networks:
+            oracle_net:
+                aliases:
+                    - oraclexe
+        ports:
+            - "9088:9088"
+        links:
+            - oracle_xe
+        environment:
+          - DATABASE_HOST=localhost
+          - DATABASE_USER=RED
+          - DATABASE_PASSWORD=Red_123
+          - DATABASE_NAME=XE
+          - DATABASE_PORT=1521
