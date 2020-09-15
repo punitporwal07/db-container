@@ -1,0 +1,10 @@
+FROM ibmcom/websphere-liberty:latest
+USER root
+ADD ./myapp.ear /opt/ibm/wlp/usr/servers/defaultServer/apps
+ADD ./myappClient.war /opt/ibm/wlp/usr/servers/defaultServer/apps
+RUN yum -y install unixODBC
+RUN yum -y install libaio
+RUN mkdir -pv /basic
+COPY ./basicinstaclient/oracle-instantclient19.8-basic-19.8.0.0.0-1.x86_64.rpm /basic/
+RUN rpm -i /basic/oracle-instantclient19.8-basic-19.8.0.0.0-1.x86_64.rpm
+EXPOSE 9088
